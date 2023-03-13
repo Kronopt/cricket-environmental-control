@@ -1,15 +1,16 @@
-import psutil
 import random
-from ..interfaces import MachineInfo
+import psutil
+from ..interfaces import HostInfo
 
 
-class RAM(MachineInfo):
+class RAM(HostInfo):
     """RAM usage"""
 
     def Get(self) -> float:
+        "RAM usage percentage"
         return psutil.virtual_memory().percent
 
 
-class MockRAM(MachineInfo):
+class MockRAM(HostInfo):
     def Get(self) -> float:
         return float(random.randrange(1, 100))

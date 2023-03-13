@@ -1,9 +1,9 @@
-import psutil
 import random
-from ..interfaces import MachineInfo
+import psutil
+from ..interfaces import HostInfo
 
 
-class CPU(MachineInfo):
+class CPU(HostInfo):
     """CPU usage"""
 
     def __init__(self):
@@ -11,9 +11,10 @@ class CPU(MachineInfo):
         self.Get()  # the response of the first call to psutil.cpu_percent is supposed to be ignored
 
     def Get(self) -> float:
+        """CPU usage percentage"""
         return psutil.cpu_percent()
 
 
-class MockCPU(MachineInfo):
+class MockCPU(HostInfo):
     def Get(self) -> float:
         return float(random.randrange(1, 100))

@@ -13,7 +13,7 @@ class Actuator(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class MachineInfo(metaclass=abc.ABCMeta):
+class HostInfo(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def Get(self) -> float:
         raise NotImplementedError

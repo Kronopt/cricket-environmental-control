@@ -4,6 +4,7 @@ import backend.adapters.actuators.fan as fan_actuator
 import backend.adapters.host.cpu as cpu_host
 import backend.adapters.host.disk as disk_host
 import backend.adapters.host.ram as ram_host
+import backend.adapters.host.temperature as temperature_host
 import backend.adapters.sensors.co2 as co2_sensor
 import backend.adapters.sensors.humidity as humidity_sensor
 import backend.adapters.sensors.nh3 as nh3_sensor
@@ -14,9 +15,10 @@ configs = configparser.ConfigParser()
 configs.read("configs.ini")
 
 # init host statistics
-cpu = cpu_host.CPU()
-ram = ram_host.RAM()
-disk = disk_host.Disk()
+host_cpu = cpu_host.CPU()
+host_ram = ram_host.RAM()
+host_disk = disk_host.Disk()
+host_temperaturte = temperature_host.Temperature()
 
 # init actuators and sensors
 electrovalves = electrovalve_actuator.Electrovalve(configs)
