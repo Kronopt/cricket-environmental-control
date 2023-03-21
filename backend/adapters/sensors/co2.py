@@ -10,10 +10,10 @@ class CO2(Sensor):
         super().__init__()
         self.driver = SCD40_D_R2()
 
-    def Read(self) -> float:
+    def read(self) -> float:
         return 0  # TODO driver
 
 
 class MockCO2(Sensor):
-    def Read(self) -> float:
+    def read(self) -> float:
         return float(random.randrange(10, 100))

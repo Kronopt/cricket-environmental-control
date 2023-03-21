@@ -8,13 +8,13 @@ class CPU(HostInfo):
 
     def __init__(self):
         super().__init__()
-        self.Get()  # the response of the first call to psutil.cpu_percent is supposed to be ignored
+        self.get()  # the response of the first call to psutil.cpu_percent is supposed to be ignored
 
-    def Get(self) -> float:
+    def get(self) -> float:
         """CPU usage percentage"""
         return psutil.cpu_percent()
 
 
 class MockCPU(HostInfo):
-    def Get(self) -> float:
+    def get(self) -> float:
         return float(random.randrange(1, 100))

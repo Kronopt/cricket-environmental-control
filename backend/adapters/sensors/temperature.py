@@ -10,10 +10,10 @@ class Temperature(Sensor):
         super().__init__()
         self.driver = SHT35()
 
-    def Read(self) -> float:
+    def read(self) -> float:
         return 0  # TODO driver
 
 
 class MockTemperature(Sensor):
-    def Read(self) -> float:
+    def read(self) -> float:
         return float(random.randrange(10, 30))

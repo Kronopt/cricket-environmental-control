@@ -10,10 +10,10 @@ class NH3(Sensor):
         super().__init__()
         self.driver = SEN17053()
 
-    def Read(self) -> float:
+    def read(self) -> float:
         return 0  # TODO driver
 
 
 class MockNH3(Sensor):
-    def Read(self) -> float:
+    def read(self) -> float:
         return float(random.randrange(10, 100))

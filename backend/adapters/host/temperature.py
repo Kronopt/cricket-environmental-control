@@ -7,7 +7,7 @@ from ..interfaces import HostInfo
 class Temperature(HostInfo):
     """Temperature"""
 
-    def Get(self) -> float:
+    def get(self) -> float:
         "Temperature in celsius (-274 == no temperature data)"
         if hasattr(psutil, "sensors_temperatures"):
             all_temperatures = psutil.sensors_temperatures()
@@ -22,5 +22,5 @@ class Temperature(HostInfo):
 
 
 class MockTemperature(HostInfo):
-    def Get(self) -> float:
+    def get(self) -> float:
         return float(random.randrange(30, 50))

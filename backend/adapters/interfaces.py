@@ -3,17 +3,17 @@ import abc
 
 class Sensor(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def Read(self) -> float:
+    def read(self) -> float:
         raise NotImplementedError
 
 
 class Actuator(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def Set(self, percent: float):
+    def set(self, percent: float):
         raise NotImplementedError
 
 
 class HostInfo(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def Get(self) -> float:
+    def get(self) -> float:
         raise NotImplementedError

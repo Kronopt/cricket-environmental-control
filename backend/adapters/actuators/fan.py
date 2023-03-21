@@ -10,12 +10,12 @@ class Fan(Actuator):
         super().__init__()
         self.driver = FAN_12V_3PIN()
 
-        self.Set(configs["fan"].getfloat("start_percentage"))
+        self.set(configs["fan"].getfloat("start_percentage"))
 
-    def Set(self, percent: float):
+    def set(self, percent: float):
         pass  # TODO driver
 
 
 class MockFan(Actuator):
-    def Set(self, percent: float):
+    def set(self, percent: float):
         pass

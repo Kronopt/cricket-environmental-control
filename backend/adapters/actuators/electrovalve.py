@@ -10,12 +10,12 @@ class Electrovalve(Actuator):
         super().__init__()
         self.driver = Electrovalve_12V()
 
-        self.Set(configs["electrovalve"].getfloat("start_percentage"))
+        self.set(configs["electrovalve"].getfloat("start_percentage"))
 
-    def Set(self, percent: float):
+    def set(self, percent: float):
         pass  # TODO driver
 
 
 class MockElectrovalve(Actuator):
-    def Set(self, percent: float):
+    def set(self, percent: float):
         pass
