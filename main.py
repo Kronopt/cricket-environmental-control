@@ -9,6 +9,7 @@ import backend.adapters.sensors.co2 as co2_sensor
 import backend.adapters.sensors.humidity as humidity_sensor
 import backend.adapters.sensors.nh3 as nh3_sensor
 import backend.adapters.sensors.temperature as temperature_sensor
+import backend.services.discovery as discovery
 
 # get configs
 configs = configparser.ConfigParser()
@@ -27,6 +28,11 @@ co2 = co2_sensor.CO2()
 humidity = humidity_sensor.Humidity()
 nh3 = nh3_sensor.NH3()
 temperature = temperature_sensor.Temperature()
+
+# init services
+node_discovery = discovery.Discovery(configs)
+# TODO start listening for broadcasts
+# TODO register subscribers to get notified on new IPs
 
 # TODO init frontend
 # TODO run frontend and backend in threads/multiprocessing
