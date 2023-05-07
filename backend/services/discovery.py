@@ -69,7 +69,7 @@ class Discovery:
                                 self.node_ips.add(ip)
                                 self.notify(ip)
 
-            except TimeoutError:
+            except socket.timeout:
                 time.sleep(5)
                 continue
 
