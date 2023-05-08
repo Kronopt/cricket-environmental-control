@@ -1,7 +1,7 @@
 import abc
+import logging
 import socket
 import threading
-import time
 import configparser
 
 
@@ -15,8 +15,9 @@ class Discovery:
     """Handles discovery of other environmental control nodes in the network"""
 
     def __init__(self, configs: configparser.ConfigParser):
-        port = configs["discovery"].getint("port")
+        self.logger = logging.getLogger(self.__class__.__name__)
 
+        port = configs["discovery"].getint("port")
         self.broadcast_address = ("255.255.255.255", port)
 
         self.message = "environmental_control_node_broadcast"
@@ -44,14 +45,19 @@ class Discovery:
     def listen(self):
         """listens for broadcasts (ref: https://github.com/jholtmann/ip_discovery)"""
 
+        self.logger.info("listening for broadcasts...")
+
         while True:
             # blocks while waiting for broadcast
             data, address = self.listening_socket.recvfrom(self.message_size)
             if data.decode("utf-8", "replace") == self.message:
+                self.logger.info("received broadcast from: %s", address[0])
                 self.listening_socket.sendto(self.response.encode(), address)
 
     def broadcast(self):
         """sends broadcasts with 3 retries (ref: https://github.com/jholtmann/ip_discovery)"""
+
+        self.logger.info("broadcasting...")
 
         for _ in range(3):
             try:
@@ -66,11 +72,14 @@ class Discovery:
                         ip = str(address[0])  # socket.AF_INET = (host, port)
                         with self.lock:
                             if ip not in self.node_ips:
+                                self.logger.info(
+                                    "received response to broadcast from: %s",
+                                    address[0],
+                                )
                                 self.node_ips.add(ip)
                                 self.notify(ip)
 
             except socket.timeout:
-                time.sleep(5)
                 continue
 
     def notify(self, ip: str):

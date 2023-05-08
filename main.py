@@ -1,4 +1,5 @@
 import configparser
+import logging
 import backend.adapters.actuators.electrovalve as electrovalve_actuator
 import backend.adapters.actuators.fan as fan_actuator
 import backend.adapters.host.cpu as cpu_host
@@ -10,6 +11,9 @@ import backend.adapters.sensors.humidity as humidity_sensor
 import backend.adapters.sensors.nh3 as nh3_sensor
 import backend.adapters.sensors.temperature as temperature_sensor
 import backend.services.discovery as discovery
+
+logging.basicConfig(level=logging.INFO)
+logging.info("starting up...")
 
 # get configs
 configs = configparser.ConfigParser()
