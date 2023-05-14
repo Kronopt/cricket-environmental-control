@@ -1,24 +1,24 @@
-import functools
 import random
-import psutil
+from collections import namedtuple
+import gpiozero
 from ..interfaces import HostInfo
 
 
 class Temperature(HostInfo):
     """Temperature"""
 
+    def __init__(self):
+        super().__init__()
+
+        try:
+            self.cpu = gpiozero.CPUTemperature()
+
+        except gpiozero.BadPinFactory:  # code probably not running on linux
+            self.cpu = namedtuple("cpu", "temperature")(-274)
+
     def get(self) -> float:
         "Temperature in celsius (-274 == no temperature data)"
-        if hasattr(psutil, "sensors_temperatures"):
-            all_temperatures = psutil.sensors_temperatures()
-
-            if "coretemp" in all_temperatures:
-                cpu_temperatures = all_temperatures["coretemp"]
-                return functools.reduce(
-                    lambda x, y: x + y, cpu_temperatures.current
-                ) / len(cpu_temperatures)
-
-        return -274.0
+        return self.cpu.temperature
 
 
 class MockTemperature(HostInfo):

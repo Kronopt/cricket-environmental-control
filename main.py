@@ -23,7 +23,7 @@ configs.read("configs.ini")
 host_cpu = cpu_host.CPU()
 host_ram = ram_host.RAM()
 host_disk = disk_host.Disk()
-host_temperaturte = temperature_host.Temperature()
+host_temperature = temperature_host.Temperature()
 
 # init actuators and sensors
 electrovalves = electrovalve_actuator.Electrovalve(configs)
@@ -39,4 +39,5 @@ node_discovery = discovery.Discovery(configs)
 # TODO register subscribers to get notified on new IPs
 
 # TODO init frontend
+# TODO when frontend opens send broadcast
 # TODO run frontend and backend in threads/multiprocessing
