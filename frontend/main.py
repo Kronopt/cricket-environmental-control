@@ -1,11 +1,11 @@
 from nicegui import ui
 
-# DOCS: https://nicegui.io/reference
+page_name = "🦗 Crickets 🦗"
 
 with ui.header():
-    ui.label("🦗 Crickets 🦗").style("margin: auto; font-size: 30px; font-weight: bold")
+    ui.label(page_name).style("margin: auto; font-size: 30px; font-weight: bold")
 
-with ui.left_drawer(fixed=False).style("background-color: #ebf1fa"):
+with ui.left_drawer(fixed=False):
     ui.label("drawer")
     # TODO
     #   Home
@@ -17,8 +17,12 @@ with ui.left_drawer(fixed=False).style("background-color: #ebf1fa"):
 # TODO
 #   CPU
 #   RAM
+#   DISK
 #   status of sensors/actuators
 
 # TODO more
 
-ui.run()
+ui.run(title=page_name, dark=True)
+
+
+# TODO cards
