@@ -1,3 +1,4 @@
-gpiozero
-psutil
-nicegui
+flask==2.3.2
+gpiozero==1.6.2
+nicegui==1.0.2
+psutil==5.9.4

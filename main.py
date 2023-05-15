@@ -10,7 +10,8 @@ import backend.adapters.sensors.co2 as co2_sensor
 import backend.adapters.sensors.humidity as humidity_sensor
 import backend.adapters.sensors.nh3 as nh3_sensor
 import backend.adapters.sensors.temperature as temperature_sensor
-import backend.services.discovery as discovery
+import backend.services.api as service_api
+import backend.services.discovery as service_discovery
 
 logging.basicConfig(level=logging.INFO)
 logging.info("starting up...")
@@ -34,10 +35,13 @@ nh3 = nh3_sensor.NH3()
 temperature = temperature_sensor.Temperature()
 
 # init services
-node_discovery = discovery.Discovery(configs)
+api = service_api.API(configs)
+discovery = service_discovery.Discovery(configs)
+
 # TODO start listening for broadcasts
 # TODO register subscribers to get notified on new IPs
 
 # TODO init frontend
 # TODO when frontend opens send broadcast
-# TODO run frontend and backend in threads/multiprocessing
+
+# TODO run frontend/backend/API in threads/multiprocessing
