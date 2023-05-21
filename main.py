@@ -1,17 +1,18 @@
 import configparser
 import logging
-import backend.adapters.actuators.electrovalve as electrovalve_actuator
-import backend.adapters.actuators.fan as fan_actuator
-import backend.adapters.host.cpu as cpu_host
-import backend.adapters.host.disk as disk_host
-import backend.adapters.host.ram as ram_host
-import backend.adapters.host.temperature as temperature_host
-import backend.adapters.sensors.co2 as co2_sensor
-import backend.adapters.sensors.humidity as humidity_sensor
-import backend.adapters.sensors.nh3 as nh3_sensor
-import backend.adapters.sensors.temperature as temperature_sensor
-import backend.services.api as service_api
-import backend.services.discovery as service_discovery
+import internal.adapters.actuators.electrovalve as electrovalve_actuator
+import internal.adapters.actuators.fan as fan_actuator
+import internal.adapters.host.cpu as cpu_host
+import internal.adapters.host.disk as disk_host
+import internal.adapters.host.ram as ram_host
+import internal.adapters.host.temperature as temperature_host
+import internal.adapters.sensors.co2 as co2_sensor
+import internal.adapters.sensors.humidity as humidity_sensor
+import internal.adapters.sensors.nh3 as nh3_sensor
+import internal.adapters.sensors.temperature as temperature_sensor
+import internal.services.discovery as service_discovery
+import internal.services.api as service_api
+import internal.services.frontend as service_frontend
 
 logging.basicConfig(level=logging.INFO)
 logging.info("starting up...")
@@ -35,13 +36,16 @@ nh3 = nh3_sensor.NH3()
 temperature = temperature_sensor.Temperature()
 
 # init services
-api = service_api.API(configs)
 discovery = service_discovery.Discovery(configs)
+service_api.API()
+app = service_frontend.Frontend()
+
+app.run()
+
 
 # TODO start listening for broadcasts
 # TODO register subscribers to get notified on new IPs
 
-# TODO init frontend
 # TODO when frontend opens send broadcast
 
 # TODO run frontend/backend/API in threads/multiprocessing
