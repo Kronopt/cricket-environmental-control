@@ -11,7 +11,7 @@ class CO2(Sensor):
         self.driver = SCD40_D_R2()
 
     def read(self) -> float:
-        return 0  # TODO driver
+        return self.driver.co2()
 
 
 class MockCO2(Sensor):

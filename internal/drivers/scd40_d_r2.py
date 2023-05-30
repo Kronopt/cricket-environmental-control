@@ -1,23 +1,40 @@
+import time
+from sensirion_i2c_driver import LinuxI2cTransceiver, I2cConnection
+from sensirion_i2c_scd import Scd4xI2cDevice
+from sensirion_i2c_scd.scd4x.data_types import Scd4xPowerMode
+
+
 class SCD40_D_R2:
-    """CO2 Sensor driver"""
+    """CO2, Temperature and Humidity Sensor driver"""
 
-    pass  # TODO
+    i2c_transceiver = LinuxI2cTransceiver("/dev/i2c-1")
+    device = Scd4xI2cDevice(I2cConnection(i2c_transceiver))
 
+    device.stop_periodic_measurement()
+    device.start_periodic_measurement(power_mode=Scd4xPowerMode.HIGH)  # every 5 seconds
 
-# import time
-# from sensirion_i2c_driver import LinuxI2cTransceiver, I2cConnection
-# from sensirion_i2c_scd import Scd4xI2cDevice
-# from sensirion_i2c_scd.scd4x.data_types import Scd4xPowerMode
+    time.sleep(5)  # I guess the sensor needs to warm up a bit...
 
-# # Connect to the I²C 1 port
-# with LinuxI2cTransceiver('/dev/i2c-1') as i2c_transceiver:
-    # scd4x = Scd4xI2cDevice(I2cConnection(i2c_transceiver))
-    
-    # # Make sure measurement is stopped, else we can't get readings
-    # scd4x.stop_periodic_measurement()
-    # scd4x.start_periodic_measurement(power_mode=Scd4xPowerMode.HIGH)
+    last_measures = device.read_measurement()  # (co2, temperature, humidity)
+    last_update = time.time()
 
-    # while True:
-        # time.sleep(5)
-        # co2, temperature, humidity = scd4x.read_measurement()
-        # print("CO2: {}\t\tTEMP: {}\t\tHUM: {}".format(co2, temperature, humidity))
+    def co2(self) -> float:
+        """CO2 ppm"""
+        self._take_measurement()
+        return SCD40_D_R2.last_measures[0].co2
+
+    def temperature(self) -> float:
+        """Temperature in °C"""
+        self._take_measurement()
+        return SCD40_D_R2.last_measures[1].degrees_celsius
+
+    def humidity(self) -> float:
+        """Humidity in %RH"""
+        self._take_measurement()
+        return SCD40_D_R2.last_measures[2].percent_rh
+
+    def _take_measurement(self):
+        """take a new measurement only if 5 seconds have passed since last measurement"""
+        if (now := time.time()) - SCD40_D_R2.last_update > 5:  # 5 seconds have passed
+            SCD40_D_R2.last_measures = SCD40_D_R2.device.read_measurement()
+            SCD40_D_R2.last_update = now

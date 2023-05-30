@@ -1,3 +1,5 @@
 gpiozero==1.6.2
 nicegui==1.0.2
 psutil==5.9.4
+sensirion-i2c-driver==1.0.0
+sensirion-i2c-scd==0.1.2

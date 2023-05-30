@@ -11,7 +11,7 @@ class Humidity(Sensor):
         self.driver = SCD40_D_R2()
 
     def read(self) -> float:
-        return 0  # TODO driver
+        return self.driver.humidity()
 
 
 class MockHumidity(Sensor):
