@@ -1,6 +1,6 @@
 import random
 from ..interfaces import Sensor
-from ...drivers.sen_17053 import SEN17053
+from ...drivers.mq_137 import MQ137
 
 
 class NH3(Sensor):
@@ -8,7 +8,7 @@ class NH3(Sensor):
 
     def __init__(self):
         super().__init__()
-        self.driver = SEN17053()
+        self.driver = MQ137()
 
     def read(self) -> float:
         return 0  # TODO driver
