@@ -51,8 +51,13 @@ class Discovery:
             # blocks while waiting for broadcast
             data, address = self.listening_socket.recvfrom(self.message_size)
             if data.decode("utf-8", "replace") == self.message:
-                self.logger.info("received broadcast from: %s", address[0])
+                ip = str(address[0])  # socket.AF_INET = (host, port)
+
+                self.logger.info("received broadcast from: %s", ip)
                 self.listening_socket.sendto(self.response.encode(), address)
+
+                self.node_ips.add(ip)
+                self.notify(ip)
 
     def broadcast(self):
         """sends broadcasts with 3 retries (ref: https://github.com/jholtmann/ip_discovery)"""
@@ -76,6 +81,7 @@ class Discovery:
                                     "received response to broadcast from: %s",
                                     address[0],
                                 )
+
                                 self.node_ips.add(ip)
                                 self.notify(ip)
 
