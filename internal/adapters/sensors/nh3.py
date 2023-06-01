@@ -11,7 +11,7 @@ class NH3(Sensor):
         self.driver = MQ137()
 
     def read(self) -> float:
-        return 0  # TODO driver
+        return self.driver.nh3()
 
 
 class MockNH3(Sensor):
