@@ -1,12 +1,14 @@
 from nicegui import ui
+from discovery import Subscriber
 
 
-class Frontend:
+class Frontend(Subscriber):
     """Pretty frontend"""
 
     def __init__(self):
         super().__init__()
 
+        self.known_ips = set()
         self.page_name = "🦗 Crickets 🦗"
 
         with ui.header():
@@ -35,3 +37,11 @@ class Frontend:
 
     def run(self):
         ui.run(title=self.page_name, reload=False, dark=True)
+
+    # subscription methods
+
+    def add_ip(self, ip: str):
+        self.known_ips.add(ip)
+
+    def remove_ip(self, ip: str):
+        self.known_ips.discard(ip)

@@ -37,10 +37,12 @@ temperature = temperature_sensor.Temperature()
 
 # init services
 discovery = service_discovery.Discovery(configs)
-service_api.API()
-app = service_frontend.Frontend()
+api = service_api.API()
+frontend = service_frontend.Frontend()
 
-app.run()
+discovery.subscribe(api, frontend)
+
+frontend.run()
 
 
 # TODO start listening for broadcasts

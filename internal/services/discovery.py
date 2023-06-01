@@ -7,7 +7,11 @@ import configparser
 
 class Subscriber:
     @abc.abstractmethod
-    def notify(self, ip: str) -> None:
+    def add_ip(self, ip: str) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove_ip(self, ip: str) -> None:
         raise NotImplementedError
 
 
@@ -56,8 +60,7 @@ class Discovery:
                 self.logger.info("received broadcast from: %s", ip)
                 self.listening_socket.sendto(self.response.encode(), address)
 
-                self.node_ips.add(ip)
-                self.notify(ip)
+                self.add_ip(ip)
 
     def broadcast(self):
         """sends broadcasts with 3 retries (ref: https://github.com/jholtmann/ip_discovery)"""
@@ -82,21 +85,33 @@ class Discovery:
                                     address[0],
                                 )
 
-                                self.node_ips.add(ip)
-                                self.notify(ip)
+                                self.add_ip(ip)
 
             except socket.timeout:
                 continue
 
-    def notify(self, ip: str):
+    # subscription methods
+
+    def subscribe(self, *subscribers: Subscriber):
+        """add subscribers"""
+        self.subscribers.update(subscribers)
+
+    def _notify_new_ip(self, ip: str):
         """notify subscribers of new node ip"""
         for sub in self.subscribers:
-            sub.notify(ip)
+            sub.add_ip(ip)
 
-    def subscribe(self, subscriber: Subscriber):
-        """add subscriber"""
-        self.subscribers.add(subscriber)
+    def _notify_remove_ip(self, ip: str):
+        """notify subscribers of removed node ip"""
+        for sub in self.subscribers:
+            sub.remove_ip(ip)
+
+    def add_ip(self, ip: str):
+        """adds ip to known node ips list"""
+        self.node_ips.add(ip)
+        self._notify_new_ip(ip)
 
     def remove_ip(self, ip: str):
         """removes ip from known node ips list"""
         self.node_ips.discard(ip)
+        self._notify_remove_ip(ip)
