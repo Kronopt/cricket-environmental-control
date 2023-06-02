@@ -11,6 +11,9 @@ class Electrovalve(Actuator):
         self.set(configs["electrovalve"].getfloat("start_percentage"))
         self.driver = Electrovalve_12V()
 
+    def get(self) -> float:
+        return 0  # TODO driver
+
     def set(self, percent: float):
         pass  # TODO driver
 

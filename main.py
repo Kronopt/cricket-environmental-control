@@ -15,19 +15,19 @@ import internal.services.api as service_api
 import internal.services.frontend as service_frontend
 
 logging.basicConfig(level=logging.INFO)
-logging.info("starting up...")
+logger = logging.getLogger("main")
 
-# get configs
+logger.info("reading configs...")
 configs = configparser.ConfigParser()
 configs.read("configs.ini")
 
-# init host statistics
+logger.info("init host statistics...")
 host_cpu = cpu_host.CPU()
 host_ram = ram_host.RAM()
 host_disk = disk_host.Disk()
 host_temperature = temperature_host.Temperature()
 
-# init actuators and sensors
+logger.info("init actuators and sensors...")
 electrovalves = electrovalve_actuator.Electrovalve(configs)
 fans = fan_actuator.Fan(configs)
 co2 = co2_sensor.CO2()
@@ -35,19 +35,29 @@ humidity = humidity_sensor.Humidity()
 nh3 = nh3_sensor.NH3()
 temperature = temperature_sensor.Temperature()
 
-# init services
+logger.info("init services...")
+api = service_api.API(
+    configs,
+    electrovalves,
+    fans,
+    host_cpu,
+    host_disk,
+    host_ram,
+    host_temperature,
+    co2,
+    humidity,
+    nh3,
+    temperature,
+)
 discovery = service_discovery.Discovery(configs)
-api = service_api.API()
 frontend = service_frontend.Frontend()
 
-discovery.subscribe(api, frontend)
+discovery.subscribe(api, api_client, frontend)
 
+# run
 frontend.run()
 
 
 # TODO start listening for broadcasts
-# TODO register subscribers to get notified on new IPs
-
 # TODO when frontend opens send broadcast
-
 # TODO run frontend/backend/API in threads/multiprocessing

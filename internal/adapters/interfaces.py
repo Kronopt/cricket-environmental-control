@@ -9,6 +9,10 @@ class Sensor(metaclass=abc.ABCMeta):
 
 class Actuator(metaclass=abc.ABCMeta):
     @abc.abstractmethod
+    def get(self) -> float:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def set(self, percent: float):
         raise NotImplementedError
 

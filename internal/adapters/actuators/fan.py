@@ -11,6 +11,9 @@ class Fan(Actuator):
         self.set(configs["fan"].getfloat("start_percentage"))
         self.driver = FAN_12V_3PIN()
 
+    def get(self) -> float:
+        return 0  # TODO driver
+
     def set(self, percent: float):
         pass  # TODO driver
 
