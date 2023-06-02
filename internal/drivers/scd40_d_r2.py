@@ -1,19 +1,38 @@
+import random
 import time
+from collections import namedtuple
 from sensirion_i2c_driver import LinuxI2cTransceiver, I2cConnection
 from sensirion_i2c_scd import Scd4xI2cDevice
 from sensirion_i2c_scd.scd4x.data_types import Scd4xPowerMode
 
 
+class MockDevice:
+    def read_measurement(self):
+        return (
+            namedtuple("co2", "co2")(float(random.randrange(0, 100))),
+            namedtuple("temperature", "degrees_celsius")(
+                float(random.randrange(0, 100))
+            ),
+            namedtuple("humidity", "percent_rh")(float(random.randrange(0, 100))),
+        )
+
+
 class SCD40_D_R2:
     """CO2, Temperature and Humidity Sensor driver"""
 
-    i2c_transceiver = LinuxI2cTransceiver("/dev/i2c-1")
-    device = Scd4xI2cDevice(I2cConnection(i2c_transceiver))
+    try:
+        i2c_transceiver = LinuxI2cTransceiver("/dev/i2c-1")
+        device = Scd4xI2cDevice(I2cConnection(i2c_transceiver))
 
-    device.stop_periodic_measurement()
-    device.start_periodic_measurement(power_mode=Scd4xPowerMode.HIGH)  # every 5 seconds
+        device.stop_periodic_measurement()
+        device.start_periodic_measurement(
+            power_mode=Scd4xPowerMode.HIGH
+        )  # every 5 seconds
 
-    time.sleep(5)  # I guess the sensor needs to warm up a bit...
+        time.sleep(5)  # I guess the sensor needs to warm up a bit...
+
+    except FileNotFoundError:  # code probably not running on linux
+        device = MockDevice()
 
     last_measures = device.read_measurement()  # (co2, temperature, humidity)
     last_update = time.time()
