@@ -6,6 +6,9 @@ from ..interfaces import HostInfo
 class Disk(HostInfo):
     """Disk usage"""
 
+    def __init__(self):
+        super().__init__()
+
     def get(self) -> float:
         """Disk usage percentage"""
         return psutil.disk_usage("/").percent

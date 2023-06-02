@@ -8,9 +8,8 @@ class Electrovalve(Actuator):
 
     def __init__(self, configs: configparser.ConfigParser):
         super().__init__()
-        self.driver = Electrovalve_12V()
-
         self.set(configs["electrovalve"].getfloat("start_percentage"))
+        self.driver = Electrovalve_12V()
 
     def set(self, percent: float):
         pass  # TODO driver

@@ -6,6 +6,9 @@ from ..interfaces import HostInfo
 class RAM(HostInfo):
     """RAM usage"""
 
+    def __init__(self):
+        super().__init__()
+
     def get(self) -> float:
         "RAM usage percentage"
         return psutil.virtual_memory().percent
