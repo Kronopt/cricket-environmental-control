@@ -1,10 +1,10 @@
 from http import HTTPStatus
 from nicegui import app
 from starlette.responses import Response
-from discovery import Subscriber
+import subscriber
 
 
-class API(Subscriber):
+class API(subscriber.Subscriber):
     """API to interact with sensors, actuators, configs, etc"""
 
     def __init__(self):
@@ -29,11 +29,3 @@ class API(Subscriber):
 
         # TODO more endpoints
         # TODO for endpoints that MODIFY data, should verify
-
-    # subscription methods
-
-    def add_ip(self, ip: str):
-        self.known_ips.add(ip)
-
-    def remove_ip(self, ip: str):
-        self.known_ips.discard(ip)

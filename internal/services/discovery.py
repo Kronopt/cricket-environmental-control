@@ -3,16 +3,7 @@ import logging
 import socket
 import threading
 import configparser
-
-
-class Subscriber:
-    @abc.abstractmethod
-    def add_ip(self, ip: str) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def remove_ip(self, ip: str) -> None:
-        raise NotImplementedError
+import subscriber
 
 
 class Discovery:
@@ -32,7 +23,7 @@ class Discovery:
         self.node_ips: set[str] = set()
         self.lock = threading.Lock()
 
-        self.subscribers: set[Subscriber] = set()
+        self.subscribers: set[subscriber.Subscriber] = set()
 
         # IPv4 UDP connections
         self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -92,7 +83,7 @@ class Discovery:
 
     # subscription methods
 
-    def subscribe(self, *subscribers: Subscriber):
+    def subscribe(self, *subscribers: subscriber.Subscriber):
         """add subscribers"""
         self.subscribers.update(subscribers)
 
