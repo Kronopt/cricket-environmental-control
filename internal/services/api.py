@@ -1,10 +1,10 @@
 from http import HTTPStatus
 from nicegui import app
 from starlette.responses import Response
-import subscriber
+from .subscriber import Subscriber
 
 
-class API(subscriber.Subscriber):
+class API(Subscriber):
     """API to interact with sensors, actuators, configs, etc"""
 
     def __init__(self):

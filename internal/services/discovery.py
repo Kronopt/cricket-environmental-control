@@ -3,7 +3,7 @@ import logging
 import socket
 import threading
 import configparser
-import subscriber
+from .subscriber import Subscriber
 
 
 class Discovery:
@@ -23,7 +23,7 @@ class Discovery:
         self.node_ips: set[str] = set()
         self.lock = threading.Lock()
 
-        self.subscribers: set[subscriber.Subscriber] = set()
+        self.subscribers: set[Subscriber] = set()
 
         # IPv4 UDP connections
         self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -83,7 +83,7 @@ class Discovery:
 
     # subscription methods
 
-    def subscribe(self, *subscribers: subscriber.Subscriber):
+    def subscribe(self, *subscribers: Subscriber):
         """add subscribers"""
         self.subscribers.update(subscribers)
 

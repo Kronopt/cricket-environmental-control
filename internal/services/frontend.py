@@ -1,8 +1,8 @@
 from nicegui import ui
-import subscriber
+from .subscriber import Subscriber
 
 
-class Frontend(subscriber.Subscriber):
+class Frontend(Subscriber):
     """Pretty frontend"""
 
     def __init__(self):
