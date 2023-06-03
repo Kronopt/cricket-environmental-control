@@ -1,3 +1,4 @@
+import configparser
 from nicegui import ui
 from .subscriber import Subscriber
 
@@ -5,8 +6,9 @@ from .subscriber import Subscriber
 class Frontend(Subscriber):
     """Pretty frontend"""
 
-    def __init__(self):
+    def __init__(self, configs: configparser.ConfigParser):
         super().__init__()
+        self.port = configs["api"].getint("port")
         self.page_name = "🦗 Crickets 🦗"
 
         with ui.header():
@@ -34,4 +36,4 @@ class Frontend(Subscriber):
         # TODO cards
 
     def run(self):
-        ui.run(title=self.page_name, reload=False, dark=True)
+        ui.run(port=self.port, title=self.page_name, reload=False, dark=True)

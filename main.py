@@ -12,6 +12,7 @@ import internal.adapters.sensors.nh3 as nh3_sensor
 import internal.adapters.sensors.temperature as temperature_sensor
 import internal.services.discovery as service_discovery
 import internal.services.api as service_api
+import internal.services.api_client as service_api_client
 import internal.services.frontend as service_frontend
 
 logging.basicConfig(level=logging.INFO)
@@ -49,10 +50,11 @@ api = service_api.API(
     nh3,
     temperature,
 )
+api_client = service_api_client.APIClient(configs)
 discovery = service_discovery.Discovery(configs)
-frontend = service_frontend.Frontend()
+frontend = service_frontend.Frontend(configs)
 
-discovery.subscribe(api, api_client, frontend)
+discovery.subscribe(api, frontend)
 
 # run
 frontend.run()
@@ -61,3 +63,4 @@ frontend.run()
 # TODO start listening for broadcasts
 # TODO when frontend opens send broadcast
 # TODO run frontend/backend/API in threads/multiprocessing
+# TODO logs everywhere!
