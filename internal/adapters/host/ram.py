@@ -1,7 +1,6 @@
 import logging
 import threading
 import time
-import warnings
 import psutil
 from .. import interfaces
 
