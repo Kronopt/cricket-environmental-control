@@ -1,6 +1,8 @@
 # must be run as root
 # assumes repository root folder is /home/pi/cricket-environmental-control
 
+git config --global --add safe.directory /home/pi/cricket-environmental-control"
+
 if ! ls /etc/systemd/system | grep -wqi "cricket-environmental-control"; then
 
 touch /etc/systemd/system/cricket-environmental-control.service
