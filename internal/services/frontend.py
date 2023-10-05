@@ -317,7 +317,7 @@ class Frontend(subscriber.Subscriber):
             self._host_node()
 
     def _host_node(self):
-        with ui.card():
+        with ui.card().classes("no-shadow border-[2px] border-blue-400"):
             with ui.image("./assets/raspberry-pi.png").classes("object-top scale-50"):
                 ui.label(self._discovery.own_ip()).classes(
                     "absolute-bottom text-center"
@@ -464,7 +464,7 @@ class Frontend(subscriber.Subscriber):
                     )
 
     def _remote_node(self, poller: poller.Poller) -> ui.card:
-        node_card = ui.card()
+        node_card = ui.card().classes("no-shadow border-[2px] border-white")
         with node_card:
             with ui.image("./assets/raspberry-pi.png").classes("object-top scale-50"):
                 ui.label(poller.ip).classes("absolute-bottom text-center")
