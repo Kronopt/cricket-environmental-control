@@ -120,12 +120,17 @@ class Frontend(subscriber.Subscriber):
 
     def _build_menu(self):
         with self.left_drawer:
+            ui.label("FANS").classes("text-center")
             self._build_temperature_options()
             self._build_co2_options()
             self._build_nh3_options()
-            self._build_humidity_options()
-            self._build_apply_configs()
+            ui.separator().classes("mt-4 mb-4")
 
+            ui.label("PUMPS").classes("text-center")
+            self._build_humidity_options()
+            ui.separator().classes("mt-4 mb-4")
+
+            self._build_apply_configs()
             ui.separator().classes("mt-4 mb-4")
 
             ui.button(
@@ -152,12 +157,12 @@ class Frontend(subscriber.Subscriber):
                         }
                     ],
                 }
-            ).classes("w-full h-40 pb-8")
+            ).classes("w-full h-40 pb-4")
 
-            ui.label("set fans to 1/3 speed at:").classes("pb-8")
+            ui.label("set fans to 1/3 speed at:")
             ui.slider(
                 min=0, max=100, step=1, value=self.temperature_fan_speeds[0]
-            ).props("label-always").on(
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.temperature_fan_speeds.set(0, int(e.args)),
@@ -165,10 +170,10 @@ class Frontend(subscriber.Subscriber):
                 ),
             )
 
-            ui.label("set fans to 2/3 speed at:").classes("pb-8")
+            ui.label("set fans to 2/3 speed at:")
             ui.slider(
                 min=0, max=100, step=1, value=self.temperature_fan_speeds[1]
-            ).props("label-always").on(
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.temperature_fan_speeds.set(1, int(e.args)),
@@ -176,10 +181,10 @@ class Frontend(subscriber.Subscriber):
                 ),
             )
 
-            ui.label("set fans to full speed at:").classes("pb-8")
+            ui.label("set fans to full speed at:")
             ui.slider(
                 min=0, max=100, step=1, value=self.temperature_fan_speeds[2]
-            ).props("label-always").on(
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.temperature_fan_speeds.set(2, int(e.args)),
@@ -206,12 +211,12 @@ class Frontend(subscriber.Subscriber):
                         }
                     ],
                 }
-            ).classes("w-full h-40 pb-8")
+            ).classes("w-full h-40 pb-4")
 
-            ui.label("set fans to 1/3 speed at:").classes("pb-8")
-            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[0],).props(
-                "label-always"
-            ).on(
+            ui.label("set fans to 1/3 speed at:")
+            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[0],).classes(
+                "pb-8"
+            ).props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.co2_fan_speeds.set(0, int(e.args)),
@@ -219,10 +224,10 @@ class Frontend(subscriber.Subscriber):
                 ),
             )
 
-            ui.label("set fans to 2/3 speed at:").classes("pb-8")
-            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[1],).props(
-                "label-always"
-            ).on(
+            ui.label("set fans to 2/3 speed at:")
+            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[1],).classes(
+                "pb-8"
+            ).props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.co2_fan_speeds.set(1, int(e.args)),
@@ -230,10 +235,10 @@ class Frontend(subscriber.Subscriber):
                 ),
             )
 
-            ui.label("set fans to full speed at:").classes("pb-8")
-            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[2],).props(
-                "label-always"
-            ).on(
+            ui.label("set fans to full speed at:")
+            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[2],).classes(
+                "pb-8"
+            ).props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.co2_fan_speeds.set(2, int(e.args)),
@@ -260,12 +265,12 @@ class Frontend(subscriber.Subscriber):
                         }
                     ],
                 }
-            ).classes("w-full h-40 pb-8")
+            ).classes("w-full h-40 pb-4")
 
-            ui.label("set fans to 1/3 speed at:").classes("pb-8")
-            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[0],).props(
-                "label-always"
-            ).on(
+            ui.label("set fans to 1/3 speed at:")
+            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[0],).classes(
+                "pb-8"
+            ).props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.nh3_fan_speeds.set(0, int(e.args)),
@@ -273,10 +278,10 @@ class Frontend(subscriber.Subscriber):
                 ),
             )
 
-            ui.label("set fans to 2/3 speed at:").classes("pb-8")
-            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[1],).props(
-                "label-always"
-            ).on(
+            ui.label("set fans to 2/3 speed at:")
+            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[1],).classes(
+                "pb-8"
+            ).props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.nh3_fan_speeds.set(1, int(e.args)),
@@ -284,10 +289,10 @@ class Frontend(subscriber.Subscriber):
                 ),
             )
 
-            ui.label("set fans to full speed at:").classes("pb-8")
-            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[2],).props(
-                "label-always"
-            ).on(
+            ui.label("set fans to full speed at:")
+            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[2],).classes(
+                "pb-8"
+            ).props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
                     self.nh3_fan_speeds.set(2, int(e.args)),
@@ -297,13 +302,13 @@ class Frontend(subscriber.Subscriber):
 
     def _build_humidity_options(self):
         with ui.expansion("Humidity (%RH)", icon="water_drop"):
-            ui.label("target %rh:").classes("pb-8")
+            ui.label("target relative humidity:")
             ui.slider(
                 min=0,
                 max=100,
                 step=1,
                 value=self.humidity_actuator_state[0],
-            ).props("label-always").on(
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: self.humidity_actuator_state.set(0, int(e.args)),
             )
