@@ -92,9 +92,9 @@ class Frontend(subscriber.Subscriber):
         )
         self.nh3_fan_speeds = Data(
             (
-                self._configs["fan"].getint("nh3_1_third_speed"),
-                self._configs["fan"].getint("nh3_2_third_speed"),
-                self._configs["fan"].getint("nh3_full_speed"),
+                self._configs["fan"].getfloat("nh3_1_third_speed"),
+                self._configs["fan"].getfloat("nh3_2_third_speed"),
+                self._configs["fan"].getfloat("nh3_full_speed"),
             )
         )
         self.humidity_actuator_state = Data(
@@ -263,7 +263,7 @@ class Frontend(subscriber.Subscriber):
             ).classes("w-full h-40 pb-8")
 
             ui.label("set fans to 1/3 speed at:").classes("pb-8")
-            ui.slider(min=0, max=100, step=1, value=self.nh3_fan_speeds[0],).props(
+            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[0],).props(
                 "label-always"
             ).on(
                 "update:model-value",
@@ -274,7 +274,7 @@ class Frontend(subscriber.Subscriber):
             )
 
             ui.label("set fans to 2/3 speed at:").classes("pb-8")
-            ui.slider(min=0, max=100, step=1, value=self.nh3_fan_speeds[1],).props(
+            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[1],).props(
                 "label-always"
             ).on(
                 "update:model-value",
@@ -285,7 +285,7 @@ class Frontend(subscriber.Subscriber):
             )
 
             ui.label("set fans to full speed at:").classes("pb-8")
-            ui.slider(min=0, max=100, step=1, value=self.nh3_fan_speeds[2],).props(
+            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[2],).props(
                 "label-always"
             ).on(
                 "update:model-value",
@@ -421,7 +421,7 @@ class Frontend(subscriber.Subscriber):
                     ui.knob(
                         float(f"{self._sensor_nh3.read():.2f}"),
                         min=0,
-                        max=10,
+                        max=1,
                         center_color="dark",
                         show_value=True,
                     ).bind_value_from(
@@ -573,7 +573,7 @@ class Frontend(subscriber.Subscriber):
                     ui.knob(
                         float(f"{poller.readings.nh3:.2f}"),
                         min=0,
-                        max=10,
+                        max=1,
                         center_color="dark",
                         show_value=True,
                     ).bind_value_from(
