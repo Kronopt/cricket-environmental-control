@@ -70,7 +70,8 @@ class Frontend(subscriber.Subscriber):
         self.port = configs["api"].getint("port")
         self.node_cards: dict[str, ui.card] = dict()  # ip -> node card
 
-        self._update_configs_lock = threading.Lock()
+        self._update_local_configs_lock = threading.Lock()
+        self._update_remote_configs_lock = threading.Lock()
 
         self.header = ui.header()
         self.left_drawer = ui.left_drawer(bordered=True)
@@ -123,18 +124,14 @@ class Frontend(subscriber.Subscriber):
             self._build_co2_options()
             self._build_nh3_options()
             self._build_humidity_options()
-
-            ui.button(
-                "apply",
-                on_click=self.update_configs,
-            ).classes("mt-4 ml-24")
+            self._build_apply_configs()
 
             ui.separator().classes("mt-4 mb-4")
 
             ui.button(
                 "search for new nodes",
                 on_click=self.search_for_nodes,
-            ).classes("ml-8")
+            ).classes("ml-12 text-xs max-h-10")
 
     def _build_temperature_options(self):
         with ui.expansion("Temperature (℃)", icon="thermostat"):
@@ -310,6 +307,22 @@ class Frontend(subscriber.Subscriber):
                 "update:model-value",
                 lambda e: self.humidity_actuator_state.set(0, int(e.args)),
             )
+
+    def _build_apply_configs(self):
+        with ui.grid(columns=2):
+            with ui.button("apply current", on_click=self.update_local_configs).classes(
+                "text-xs max-h-10"
+            ):
+                ui.tooltip("applies configs to current connected Raspberry Pi").classes(
+                    "text-center"
+                )
+
+            with ui.button(
+                "apply all", on_click=self.update_all_configs, color="white"
+            ).classes("text-xs max-h-10 text-zinc-600"):
+                ui.tooltip(
+                    "applies configs to current connected Raspberry Pi as well as to all known remote Raspberry Pis"
+                ).classes("text-center")
 
     def _build_body(self):
         self.nodes_body = ui.grid(columns=3)
@@ -623,12 +636,16 @@ class Frontend(subscriber.Subscriber):
         ui.notify(f"searching for new nodes...")
         threading.Thread(target=self._discovery.broadcast).start()
 
-    def update_configs(self):
-        ui.notify(f"updating configs...")
-        threading.Thread(target=self._update_configs).start()
+    def update_local_configs(self):
+        ui.notify(f"updating configs for current node...")
+        threading.Thread(target=self._update_local_configs).start()
 
-    def _update_configs(self):
-        with self._update_configs_lock:
+    def update_all_configs(self):
+        ui.notify(f"updating configs for all nodes...")
+        threading.Thread(target=self._update_all_configs).start()
+
+    def _update_local_configs(self):
+        with self._update_local_configs_lock:
             self._configs.set_multiple(
                 (
                     # electrovalve, humidity
@@ -664,6 +681,10 @@ class Frontend(subscriber.Subscriber):
                 )
             )
 
+    def _update_all_configs(self):
+        self._update_local_configs()
+
+        with self._update_remote_configs_lock:
             configs_for_nodes = api.Configs(
                 electrovalve=api.ElectrovalveConfigs(
                     humidity_target=self.humidity_actuator_state[0],
