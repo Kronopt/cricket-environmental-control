@@ -1,6 +1,7 @@
 import logging
 import threading
 import requests
+from typing import Any
 from nicegui import ui
 from . import api
 from . import api_client
@@ -28,6 +29,59 @@ class electrovalve_label(ui.label):
             self.classes(replace=self.default_classes + "text-positive")
         else:
             self.classes(replace=self.default_classes)
+
+
+class node_knob(ui.knob):
+    def __init__(
+        self,
+        starting_value: float,
+        min: float,
+        max: float,
+        lower_bound: float,
+        mid_lower_bound: float,
+        mid_upper_bound: float,
+        upper_bound: float,
+        lower_color: str,
+        mid_color: str,
+        upper_color: str,
+        mid_lower_color: None | str = None,
+        mid_upper_color: None | str = None,
+    ):
+        super().__init__(
+            starting_value, min=min, max=max, center_color="dark", show_value=True
+        )
+        self.props("readonly")
+
+        self.lower_bound = lower_bound
+        self.mid_lower_bound = mid_lower_bound
+        self.mid_upper_bound = mid_upper_bound
+        self.upper_bound = upper_bound
+
+        self.lower_color = lower_color
+        self.mid_lower_color = mid_lower_color if mid_lower_color else mid_color
+        self.mid_color = mid_color
+        self.mid_upper_color = mid_upper_color if mid_upper_color else mid_color
+        self.upper_color = upper_color
+
+        self.on_value_change(starting_value)
+
+    def on_value_change(self, value: Any):
+        super().on_value_change(value)
+
+        if value < self.lower_bound:
+            self.props(f"color={self.lower_color}")
+
+        elif self.lower_bound <= value < self.mid_lower_bound:
+            self.props(f"color={self.mid_lower_color}")
+
+        elif self.mid_lower_bound <= value < self.mid_upper_bound:
+            self.props(f"color={self.mid_color}")
+
+        elif self.mid_upper_bound <= value < self.upper_bound:
+            self.props(f"color={self.mid_upper_color}")
+
+        elif value >= self.upper_bound:
+            self.props(f"color={self.upper_color}")
 
 
 class Frontend(subscriber.Subscriber):
@@ -373,49 +427,75 @@ class Frontend(subscriber.Subscriber):
             with ui.row():
                 with ui.card():
                     ui.label("cpu %").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._host_cpu.get():.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
-                        self._host_cpu, "value", backward=lambda x: float(f"{x:.2f}")
+                        lower_bound=70,
+                        mid_lower_bound=70,
+                        mid_upper_bound=90,
+                        upper_bound=90,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
+                        self._host_cpu,
+                        "value",
+                        backward=lambda x: float(f"{x:.2f}"),
                     )
 
                 with ui.card():
                     ui.label("ram %").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._host_ram.get():.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
-                        self._host_ram, "value", backward=lambda x: float(f"{x:.2f}")
+                        lower_bound=70,
+                        mid_lower_bound=70,
+                        mid_upper_bound=90,
+                        upper_bound=90,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
+                        self._host_ram,
+                        "value",
+                        backward=lambda x: float(f"{x:.2f}"),
                     )
 
                 with ui.card():
                     ui.label("disk %").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._host_disk.get():.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
-                        self._host_disk, "value", backward=lambda x: float(f"{x:.2f}")
+                        lower_bound=70,
+                        mid_lower_bound=70,
+                        mid_upper_bound=90,
+                        upper_bound=90,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
+                        self._host_disk,
+                        "value",
+                        backward=lambda x: float(f"{x:.2f}"),
                     )
 
                 with ui.card():
                     ui.label("temp ℃").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._host_temperature.get():.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=60,
+                        mid_lower_bound=60,
+                        mid_upper_bound=70,
+                        upper_bound=70,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
                         self._host_temperature,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -425,13 +505,20 @@ class Frontend(subscriber.Subscriber):
             with ui.row():
                 with ui.card():
                     ui.label("temp ℃").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._sensor_temperature.read():.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=24,
+                        mid_lower_bound=28,
+                        mid_upper_bound=32,
+                        upper_bound=35,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        mid_upper_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
                         self._sensor_temperature,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -439,37 +526,61 @@ class Frontend(subscriber.Subscriber):
 
                 with ui.card():
                     ui.label("co2 ㏙").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._sensor_co2.read():.2f}"),
                         min=0,
                         max=10000,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
-                        self._sensor_co2, "value", backward=lambda x: float(f"{x:.2f}")
+                        lower_bound=1000,
+                        mid_lower_bound=1500,
+                        mid_upper_bound=5000,
+                        upper_bound=6000,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        mid_upper_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
+                        self._sensor_co2,
+                        "value",
+                        backward=lambda x: float(f"{x:.2f}"),
                     )
 
                 with ui.card():
                     ui.label("nh3 ㏙").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._sensor_nh3.read():.2f}"),
                         min=0,
                         max=1,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
-                        self._sensor_nh3, "value", backward=lambda x: float(f"{x:.2f}")
+                        lower_bound=0.05,
+                        mid_lower_bound=0.1,
+                        mid_upper_bound=0.8,
+                        upper_bound=0.85,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        mid_upper_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
+                        self._sensor_nh3,
+                        "value",
+                        backward=lambda x: float(f"{x:.2f}"),
                     )
 
                 with ui.card():
                     ui.label("%rh").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{self._sensor_humidity.read():.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=25,
+                        mid_lower_bound=30,
+                        mid_upper_bound=100,
+                        upper_bound=100,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        upper_color="green",
+                    ).bind_value_from(
                         self._sensor_humidity,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -478,13 +589,18 @@ class Frontend(subscriber.Subscriber):
             with ui.row().classes("self-center"):
                 with ui.card():
                     ui.label("fans %").classes("self-center")
-                    ui.knob(
-                        float(f"{self._fans.get():.2f}"),
+                    node_knob(
+                        float(f"{self._sensor_humidity.read():.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=100,
+                        mid_lower_bound=100,
+                        mid_upper_bound=100,
+                        upper_bound=100,
+                        lower_color="green",
+                        mid_color="green",
+                        upper_color="green",
+                    ).bind_value_from(
                         self._fans,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -519,13 +635,18 @@ class Frontend(subscriber.Subscriber):
             with ui.row():
                 with ui.card():
                     ui.label("cpu %").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.host_cpu:.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=70,
+                        mid_lower_bound=70,
+                        mid_upper_bound=90,
+                        upper_bound=90,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
                         poller.readings,
                         "host_cpu",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -533,13 +654,18 @@ class Frontend(subscriber.Subscriber):
 
                 with ui.card():
                     ui.label("ram %").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.host_ram:.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=70,
+                        mid_lower_bound=70,
+                        mid_upper_bound=90,
+                        upper_bound=90,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
                         poller.readings,
                         "host_ram",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -547,13 +673,18 @@ class Frontend(subscriber.Subscriber):
 
                 with ui.card():
                     ui.label("disk %").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.host_disk:.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=70,
+                        mid_lower_bound=70,
+                        mid_upper_bound=90,
+                        upper_bound=90,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
                         poller.readings,
                         "host_disk",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -561,13 +692,18 @@ class Frontend(subscriber.Subscriber):
 
                 with ui.card():
                     ui.label("temp ℃").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.host_temperature:.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=60,
+                        mid_lower_bound=60,
+                        mid_upper_bound=70,
+                        upper_bound=70,
+                        lower_color="green",
+                        mid_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
                         poller.readings,
                         "host_temperature",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -577,13 +713,20 @@ class Frontend(subscriber.Subscriber):
             with ui.row():
                 with ui.card():
                     ui.label("temp ℃").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.sensor_temperature:.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=24,
+                        mid_lower_bound=28,
+                        mid_upper_bound=32,
+                        upper_bound=35,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        mid_upper_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
                         poller.readings,
                         "sensor_temperature",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -591,37 +734,61 @@ class Frontend(subscriber.Subscriber):
 
                 with ui.card():
                     ui.label("co2 ㏙").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.co2:.2f}"),
                         min=0,
                         max=10000,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
-                        poller.readings, "co2", backward=lambda x: float(f"{x:.2f}")
+                        lower_bound=1000,
+                        mid_lower_bound=1500,
+                        mid_upper_bound=5000,
+                        upper_bound=6000,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        mid_upper_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
+                        poller.readings,
+                        "co2",
+                        backward=lambda x: float(f"{x:.2f}"),
                     )
 
                 with ui.card():
                     ui.label("nh3 ㏙").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.nh3:.2f}"),
                         min=0,
                         max=1,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
-                        poller.readings, "nh3", backward=lambda x: float(f"{x:.2f}")
+                        lower_bound=0.05,
+                        mid_lower_bound=0.1,
+                        mid_upper_bound=0.8,
+                        upper_bound=0.85,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        mid_upper_color="orange",
+                        upper_color="red",
+                    ).bind_value_from(
+                        poller.readings,
+                        "nh3",
+                        backward=lambda x: float(f"{x:.2f}"),
                     )
 
                 with ui.card():
                     ui.label("%rh").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.humidity:.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=25,
+                        mid_lower_bound=30,
+                        mid_upper_bound=100,
+                        upper_bound=100,
+                        lower_color="red",
+                        mid_lower_color="orange",
+                        mid_color="green",
+                        upper_color="green",
+                    ).bind_value_from(
                         poller.readings,
                         "humidity",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -630,13 +797,18 @@ class Frontend(subscriber.Subscriber):
             with ui.row().classes("self-center"):
                 with ui.card():
                     ui.label("fans %").classes("self-center")
-                    ui.knob(
+                    node_knob(
                         float(f"{poller.readings.fans:.2f}"),
                         min=0,
                         max=100,
-                        center_color="dark",
-                        show_value=True,
-                    ).props("readonly").bind_value_from(
+                        lower_bound=100,
+                        mid_lower_bound=100,
+                        mid_upper_bound=100,
+                        upper_bound=100,
+                        lower_color="green",
+                        mid_color="green",
+                        upper_color="green",
+                    ).bind_value_from(
                         poller.readings,
                         "fans",
                         backward=lambda x: float(f"{x:.2f}"),
