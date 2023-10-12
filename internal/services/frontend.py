@@ -379,7 +379,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._host_cpu, "value", backward=lambda x: float(f"{x:.2f}")
                     )
 
@@ -391,7 +391,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._host_ram, "value", backward=lambda x: float(f"{x:.2f}")
                     )
 
@@ -403,7 +403,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._host_disk, "value", backward=lambda x: float(f"{x:.2f}")
                     )
 
@@ -415,7 +415,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._host_temperature,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -431,7 +431,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._sensor_temperature,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -445,7 +445,7 @@ class Frontend(subscriber.Subscriber):
                         max=10000,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._sensor_co2, "value", backward=lambda x: float(f"{x:.2f}")
                     )
 
@@ -457,7 +457,7 @@ class Frontend(subscriber.Subscriber):
                         max=1,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._sensor_nh3, "value", backward=lambda x: float(f"{x:.2f}")
                     )
 
@@ -469,7 +469,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._sensor_humidity,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -484,7 +484,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         self._fans,
                         "value",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -497,7 +497,7 @@ class Frontend(subscriber.Subscriber):
                     # I couldn't bind the value of self.electrovalve.value to the label any other way...
                     # I'm sure there's a way to do it, I just couldn't figure it out
                     electrovalve_knob = ui.knob(float(self._electrovalves.is_on()))
-                    electrovalve_knob.bind_value_from(
+                    electrovalve_knob.props("readonly").bind_value_from(
                         self._electrovalves,
                         "value",
                         backward=lambda x: float(x),
@@ -525,7 +525,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings,
                         "host_cpu",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -539,7 +539,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings,
                         "host_ram",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -553,7 +553,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings,
                         "host_disk",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -567,7 +567,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings,
                         "host_temperature",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -583,7 +583,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings,
                         "sensor_temperature",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -597,7 +597,7 @@ class Frontend(subscriber.Subscriber):
                         max=10000,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings, "co2", backward=lambda x: float(f"{x:.2f}")
                     )
 
@@ -609,7 +609,7 @@ class Frontend(subscriber.Subscriber):
                         max=1,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings, "nh3", backward=lambda x: float(f"{x:.2f}")
                     )
 
@@ -621,7 +621,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings,
                         "humidity",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -636,7 +636,7 @@ class Frontend(subscriber.Subscriber):
                         max=100,
                         center_color="dark",
                         show_value=True,
-                    ).bind_value_from(
+                    ).props("readonly").bind_value_from(
                         poller.readings,
                         "fans",
                         backward=lambda x: float(f"{x:.2f}"),
@@ -651,7 +651,7 @@ class Frontend(subscriber.Subscriber):
                     electrovalve_knob = ui.knob(
                         float(poller.readings.electrovalves),
                     )
-                    electrovalve_knob.bind_value_from(
+                    electrovalve_knob.props("readonly").bind_value_from(
                         poller.readings,
                         "electrovalves",
                         backward=lambda x: float(x),
