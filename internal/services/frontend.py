@@ -100,6 +100,12 @@ class Frontend(subscriber.Subscriber):
         self.humidity_actuator_state = Data(
             (self._configs["electrovalve"].getint("humidity_target"),)
         )
+        self.burst_state = Data(
+            (
+                self._configs["electrovalve"].getint("burst_opened_for_secs"),
+                self._configs["electrovalve"].getint("burst_every_secs"),
+            )
+        )
 
         self.page_name = "🦗 Crickets 🦗"
         self._build_header()
@@ -128,6 +134,7 @@ class Frontend(subscriber.Subscriber):
 
             ui.label("PUMPS").classes("text-center")
             self._build_humidity_options()
+            self._build_pump_burst_options()
             ui.separator().classes("mt-4 mb-4")
 
             self._build_apply_configs()
@@ -312,6 +319,27 @@ class Frontend(subscriber.Subscriber):
                 "update:model-value",
                 lambda e: self.humidity_actuator_state.set(0, int(e.args)),
             )
+
+    def _build_pump_burst_options(self):
+        with ui.expansion("Bursts", icon="shower"):
+
+            ui.number(
+                prefix="opened for",
+                value=self.burst_state[0],
+                min=1,
+                step=1,
+                suffix="secs",
+                on_change=lambda e: self.burst_state.set(0, int(e.value)),
+            ).classes("pr-32")
+
+            ui.number(
+                prefix="every",
+                value=self.burst_state[1],
+                min=1,
+                step=1,
+                suffix="secs",
+                on_change=lambda e: self.burst_state.set(1, int(e.value)),
+            ).classes("pr-32")
 
     def _build_apply_configs(self):
         with ui.grid(columns=2):
@@ -659,6 +687,17 @@ class Frontend(subscriber.Subscriber):
                         "humidity_target",
                         str(self.humidity_actuator_state[0]),
                     ),
+                    # electrovalve, burst
+                    (
+                        "electrovalve",
+                        "burst_opened_for_secs",
+                        str(self.burst_state[0]),
+                    ),
+                    (
+                        "electrovalve",
+                        "burst_every_secs",
+                        str(self.burst_state[1]),
+                    ),
                     # fan, temperature
                     (
                         "fan",
@@ -693,6 +732,8 @@ class Frontend(subscriber.Subscriber):
             configs_for_nodes = api.Configs(
                 electrovalve=api.ElectrovalveConfigs(
                     humidity_target=self.humidity_actuator_state[0],
+                    burst_opened_for_secs=self.burst_state[0],
+                    burst_every_secs=self.burst_state[1],
                 ),
                 fan=api.FanConfigs(
                     temperature_1_third_speed=self.temperature_fan_speeds[0],

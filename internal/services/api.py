@@ -45,6 +45,8 @@ class Config(pydantic.BaseModel):
 
 class ElectrovalveConfigs(pydantic.BaseModel):
     humidity_target: str
+    burst_opened_for_secs: int
+    burst_every_secs: int
 
 
 class AllReadings(pydantic.BaseModel):
@@ -249,6 +251,17 @@ class API:
                         "electrovalve",
                         "humidity_target",
                         value.electrovalve.humidity_target,
+                    ),
+                    # electrovalve, burst
+                    (
+                        "electrovalve",
+                        "burst_opened_for_secs",
+                        str(value.electrovalve.burst_opened_for_secs),
+                    ),
+                    (
+                        "electrovalve",
+                        "burst_every_secs",
+                        str(value.electrovalve.burst_every_secs),
                     ),
                     # fan, temperature
                     (

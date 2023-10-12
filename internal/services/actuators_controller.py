@@ -110,9 +110,9 @@ class ActuatorsController:
         return self.fan_turned_off
 
     def _fans_nh3_speed(self) -> float:
-        target_nh3_1_third_speed = self._configs["fan"].getint("nh3_1_third_speed")
-        target_nh3_2_third_speed = self._configs["fan"].getint("nh3_2_third_speed")
-        target_nh3_full_speed = self._configs["fan"].getint("nh3_full_speed")
+        target_nh3_1_third_speed = self._configs["fan"].getfloat("nh3_1_third_speed")
+        target_nh3_2_third_speed = self._configs["fan"].getfloat("nh3_2_third_speed")
+        target_nh3_full_speed = self._configs["fan"].getfloat("nh3_full_speed")
         current_nh3 = self._sensor_nh3.read()
 
         if current_nh3 >= target_nh3_full_speed:
