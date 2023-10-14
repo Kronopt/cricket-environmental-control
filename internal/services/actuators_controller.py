@@ -1,7 +1,11 @@
 import logging
 import time
+from typing import TYPE_CHECKING
 from . import configurations
 from ..adapters import interfaces
+
+if TYPE_CHECKING:
+    from .frontend import HumiditySettings
 
 
 class ActuatorsController:
@@ -25,6 +29,7 @@ class ActuatorsController:
         self._sensor_humidity = sensor_humidity
         self._sensor_nh3 = sensor_nh3
         self._sensor_temperature = sensor_temperature
+        self._humidity_settings_data: "HumiditySettings"  # set by frontend
 
         self.fan_turned_off = 0.0
         self.fan_1_third_speed = 33.33
@@ -56,6 +61,10 @@ class ActuatorsController:
         else:
             self._electrovalves.off()
 
+    def handle_cycles(self):
+        # TODO
+        pass
+
     def start(self):
         """
         starts all actuators controllers.
@@ -68,6 +77,7 @@ class ActuatorsController:
 
             self.handle_fans()
             self.handle_electrovalves()
+            self.handle_cycles()
 
     def _fans_temperature_speed(self) -> float:
         target_temperature_1_third_speed = self._configs["fan"].getint(

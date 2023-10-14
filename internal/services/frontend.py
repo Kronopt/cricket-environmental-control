@@ -1,8 +1,10 @@
 import logging
 import threading
 import requests
+from dataclasses import dataclass
 from typing import Any
 from nicegui import ui
+from . import actuators_controller
 from . import api
 from . import api_client
 from . import configurations
@@ -12,9 +14,89 @@ from . import subscriber
 from ..adapters import interfaces
 
 
-class Data(list):
-    def set(self, index: int, value: int):
-        self[index] = value
+@dataclass
+class TemperatureFanData:
+    one_third_speed: int
+    two_third_speed: int
+    full_speed: int
+
+    def set_one_third_speed(self, value: int):
+        self.one_third_speed = value
+
+    def set_two_third_speed(self, value: int):
+        self.two_third_speed = value
+
+    def set_full_speed(self, value: int):
+        self.full_speed = value
+
+    def values(self) -> list[int]:
+        return [self.one_third_speed, self.two_third_speed, self.full_speed]
+
+
+@dataclass
+class CO2FanData:
+    one_third_speed: int
+    two_third_speed: int
+    full_speed: int
+
+    def set_one_third_speed(self, value: int):
+        self.one_third_speed = value
+
+    def set_two_third_speed(self, value: int):
+        self.two_third_speed = value
+
+    def set_full_speed(self, value: int):
+        self.full_speed = value
+
+    def values(self) -> list[int]:
+        return [self.one_third_speed, self.two_third_speed, self.full_speed]
+
+
+@dataclass
+class NH3FanData:
+    one_third_speed: float
+    two_third_speed: float
+    full_speed: float
+
+    def set_one_third_speed(self, value: float):
+        self.one_third_speed = value
+
+    def set_two_third_speed(self, value: float):
+        self.two_third_speed = value
+
+    def set_full_speed(self, value: float):
+        self.full_speed = value
+
+    def values(self) -> list[float]:
+        return [self.one_third_speed, self.two_third_speed, self.full_speed]
+
+
+@dataclass
+class HumiditySettings:
+    target: int
+    cycle: str
+    cycle_targets: str
+
+    def set_target(self, value: int):
+        self.target = value
+
+    def set_cycle(self, value: str):
+        self.cycle = value
+
+    def set_cycle_targets(self, value: str):
+        self.cycle_targets = value
+
+
+@dataclass
+class BurstSettings:
+    opened_for_secs: int
+    every_secs: int
+
+    def set_opened_for_secs(self, value: int):
+        self.opened_for_secs = value
+
+    def set_every_secs(self, value: int):
+        self.every_secs = value
 
 
 class electrovalve_label(ui.label):
@@ -84,12 +166,98 @@ class node_knob(ui.knob):
             self.props(f"color={self.upper_color}")
 
 
+class humidity_target_option(ui.number):
+    def __init__(self, date: str, config: HumiditySettings, *args, **kwargs):
+        super().__init__(
+            on_change=lambda e: self.save_target_rh(e.value), *args, **kwargs
+        )
+        self.date = date
+        self.config = config
+
+        self.save_target_rh(0)
+
+    def save_target_rh(self, value):
+        targets_rh = eval(self.config.cycle_targets)  # dict(date: str -> target: int)
+        if value < 0:
+            del targets_rh[self.date]
+        else:
+            targets_rh[self.date] = int(value)
+        self.config.set_cycle_targets(str(targets_rh))
+
+
+class humidity_target_options(ui.column):
+    def __init__(self, dates: Any, config: HumiditySettings, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dates: dict[str, humidity_target_option] = dict()
+        self.config = config
+
+        self.handle(dates)
+
+    def handle(self, dates: Any):
+        if dates is None:
+            self._clear()
+            return
+
+        if isinstance(dates, list):
+            if len(dates) == 0:
+                self._clear()
+                return
+
+            else:
+                targets_rh = eval(
+                    self.config.cycle_targets
+                )  # dict(date: str -> target: int)
+
+                new_dates = []
+                for date in dates:
+
+                    date_as_str = str(date)
+                    new_dates.append(date_as_str)
+                    if date_as_str not in self.dates:
+                        targets_rh[date_as_str] = 0
+
+                        with self:
+                            self.dates[date_as_str] = humidity_target_option(
+                                date=date_as_str,
+                                config=self.config,
+                                prefix=self._prefix(date),
+                                value=targets_rh[date_as_str],
+                                min=0,
+                                max=100,
+                                step=1,
+                                suffix="%rh",
+                            )
+
+                to_del = []
+                for date in self.dates:
+                    if date not in new_dates:
+                        self.dates[date].save_target_rh(-1)
+                        self.dates[date].delete()
+                        to_del.append(date)
+
+                for date in to_del:
+                    del self.dates[date]
+                    del targets_rh[date]
+
+    def _prefix(self, date: str | dict[str, str]) -> str:
+        if isinstance(date, str):
+            return f"{date}:"
+        if isinstance(date, dict):
+            return "{} to {}:".format(date["from"], date["to"])
+
+    def _clear(self):
+        self.clear()
+        self.dates.clear()
+        self.config.set_cycle_targets("{}")
+
+
 class Frontend(subscriber.Subscriber):
     """Pretty frontend"""
 
     def __init__(
         self,
         configs: configurations.Configurations,
+        actuator_controller: actuators_controller.ActuatorsController,
         api_client: api_client.APIClient,
         discovery: discovery.Discovery,
         poller_manager: poller.PollerManager,
@@ -107,6 +275,7 @@ class Frontend(subscriber.Subscriber):
         super().__init__()
         self._logger = logging.getLogger("services." + self.__class__.__name__)
         self._configs = configs
+        self._actuator_controller = actuator_controller
         self._api_client = api_client
         self._discovery = discovery
         self._poller_manager = poller_manager
@@ -128,38 +297,34 @@ class Frontend(subscriber.Subscriber):
         self._update_remote_configs_lock = threading.Lock()
 
         self.header = ui.header()
-        self.left_drawer = ui.left_drawer(bordered=True)
+        self.left_drawer = ui.left_drawer(bordered=True).props("width=324")
 
-        self.temperature_fan_speeds = Data(
-            (
-                self._configs["fan"].getint("temperature_1_third_speed"),
-                self._configs["fan"].getint("temperature_2_third_speed"),
-                self._configs["fan"].getint("temperature_full_speed"),
-            )
+        self.temperature_fan_speeds = TemperatureFanData(
+            self._configs["fan"].getint("temperature_1_third_speed"),
+            self._configs["fan"].getint("temperature_2_third_speed"),
+            self._configs["fan"].getint("temperature_full_speed"),
         )
-        self.co2_fan_speeds = Data(
-            (
-                self._configs["fan"].getint("co2_1_third_speed"),
-                self._configs["fan"].getint("co2_2_third_speed"),
-                self._configs["fan"].getint("co2_full_speed"),
-            )
+        self.co2_fan_speeds = CO2FanData(
+            self._configs["fan"].getint("co2_1_third_speed"),
+            self._configs["fan"].getint("co2_2_third_speed"),
+            self._configs["fan"].getint("co2_full_speed"),
         )
-        self.nh3_fan_speeds = Data(
-            (
-                self._configs["fan"].getfloat("nh3_1_third_speed"),
-                self._configs["fan"].getfloat("nh3_2_third_speed"),
-                self._configs["fan"].getfloat("nh3_full_speed"),
-            )
+        self.nh3_fan_speeds = NH3FanData(
+            self._configs["fan"].getfloat("nh3_1_third_speed"),
+            self._configs["fan"].getfloat("nh3_2_third_speed"),
+            self._configs["fan"].getfloat("nh3_full_speed"),
         )
-        self.humidity_actuator_state = Data(
-            (self._configs["electrovalve"].getint("humidity_target"),)
+        self.humidity_settings = HumiditySettings(
+            self._configs["electrovalve"].getint("humidity_target"),
+            self._configs["electrovalve"].get("humidity_cycle"),
+            self._configs["electrovalve"].get("humidity_cycle_targets"),
         )
-        self.burst_state = Data(
-            (
-                self._configs["electrovalve"].getint("burst_opened_for_secs"),
-                self._configs["electrovalve"].getint("burst_every_secs"),
-            )
+        self.burst_state = BurstSettings(
+            self._configs["electrovalve"].getint("burst_opened_for_secs"),
+            self._configs["electrovalve"].getint("burst_every_secs"),
         )
+
+        self._actuator_controller._humidity_settings_data = self.humidity_settings
 
         self.page_name = "🦗 Crickets 🦗"
         self._build_header()
@@ -188,6 +353,7 @@ class Frontend(subscriber.Subscriber):
 
             ui.label("PUMPS").classes("text-center")
             self._build_humidity_options()
+            self._build_humidity_cycle_options()
             self._build_pump_burst_options()
             ui.separator().classes("mt-4 mb-4")
 
@@ -214,7 +380,7 @@ class Frontend(subscriber.Subscriber):
                     "series": [
                         {
                             "showInLegend": False,
-                            "data": self.temperature_fan_speeds,
+                            "data": self.temperature_fan_speeds.values(),
                         }
                     ],
                 }
@@ -222,34 +388,40 @@ class Frontend(subscriber.Subscriber):
 
             ui.label("set fans to 1/3 speed at:")
             ui.slider(
-                min=0, max=100, step=1, value=self.temperature_fan_speeds[0]
+                min=0,
+                max=100,
+                step=1,
+                value=self.temperature_fan_speeds.one_third_speed,
             ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.temperature_fan_speeds.set(0, int(e.args)),
-                    self._update_chart(fan_chart, self.temperature_fan_speeds),
+                    self.temperature_fan_speeds.set_one_third_speed(int(e.args)),
+                    self._update_chart(fan_chart, self.temperature_fan_speeds.values()),
                 ),
             )
 
             ui.label("set fans to 2/3 speed at:")
             ui.slider(
-                min=0, max=100, step=1, value=self.temperature_fan_speeds[1]
+                min=0,
+                max=100,
+                step=1,
+                value=self.temperature_fan_speeds.two_third_speed,
             ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.temperature_fan_speeds.set(1, int(e.args)),
-                    self._update_chart(fan_chart, self.temperature_fan_speeds),
+                    self.temperature_fan_speeds.set_two_third_speed(int(e.args)),
+                    self._update_chart(fan_chart, self.temperature_fan_speeds.values()),
                 ),
             )
 
             ui.label("set fans to full speed at:")
             ui.slider(
-                min=0, max=100, step=1, value=self.temperature_fan_speeds[2]
+                min=0, max=100, step=1, value=self.temperature_fan_speeds.full_speed
             ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.temperature_fan_speeds.set(2, int(e.args)),
-                    self._update_chart(fan_chart, self.temperature_fan_speeds),
+                    self.temperature_fan_speeds.set_full_speed(int(e.args)),
+                    self._update_chart(fan_chart, self.temperature_fan_speeds.values()),
                 ),
             )
 
@@ -268,42 +440,42 @@ class Frontend(subscriber.Subscriber):
                     "series": [
                         {
                             "showInLegend": False,
-                            "data": self.co2_fan_speeds,
+                            "data": self.co2_fan_speeds.values(),
                         }
                     ],
                 }
             ).classes("w-full h-40 pb-4")
 
             ui.label("set fans to 1/3 speed at:")
-            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[0],).classes(
-                "pb-8"
-            ).props("label-always switch-label-side").on(
+            ui.slider(
+                min=0, max=5000, step=10, value=self.co2_fan_speeds.one_third_speed
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.co2_fan_speeds.set(0, int(e.args)),
-                    self._update_chart(fan_chart, self.co2_fan_speeds),
+                    self.co2_fan_speeds.set_one_third_speed(int(e.args)),
+                    self._update_chart(fan_chart, self.co2_fan_speeds.values()),
                 ),
             )
 
             ui.label("set fans to 2/3 speed at:")
-            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[1],).classes(
-                "pb-8"
-            ).props("label-always switch-label-side").on(
+            ui.slider(
+                min=0, max=5000, step=10, value=self.co2_fan_speeds.two_third_speed
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.co2_fan_speeds.set(1, int(e.args)),
-                    self._update_chart(fan_chart, self.co2_fan_speeds),
+                    self.co2_fan_speeds.set_two_third_speed(int(e.args)),
+                    self._update_chart(fan_chart, self.co2_fan_speeds.values()),
                 ),
             )
 
             ui.label("set fans to full speed at:")
-            ui.slider(min=0, max=5000, step=10, value=self.co2_fan_speeds[2],).classes(
-                "pb-8"
-            ).props("label-always switch-label-side").on(
+            ui.slider(
+                min=0, max=5000, step=10, value=self.co2_fan_speeds.full_speed
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.co2_fan_speeds.set(2, int(e.args)),
-                    self._update_chart(fan_chart, self.co2_fan_speeds),
+                    self.co2_fan_speeds.set_full_speed(int(e.args)),
+                    self._update_chart(fan_chart, self.co2_fan_speeds.values()),
                 ),
             )
 
@@ -322,42 +494,42 @@ class Frontend(subscriber.Subscriber):
                     "series": [
                         {
                             "showInLegend": False,
-                            "data": self.nh3_fan_speeds,
+                            "data": self.nh3_fan_speeds.values(),
                         }
                     ],
                 }
             ).classes("w-full h-40 pb-4")
 
             ui.label("set fans to 1/3 speed at:")
-            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[0],).classes(
-                "pb-8"
-            ).props("label-always switch-label-side").on(
+            ui.slider(
+                min=0, max=1, step=0.01, value=self.nh3_fan_speeds.one_third_speed
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.nh3_fan_speeds.set(0, int(e.args)),
-                    self._update_chart(fan_chart, self.nh3_fan_speeds),
+                    self.nh3_fan_speeds.set_one_third_speed(float(e.args)),
+                    self._update_chart(fan_chart, self.nh3_fan_speeds.values()),
                 ),
             )
 
             ui.label("set fans to 2/3 speed at:")
-            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[1],).classes(
-                "pb-8"
-            ).props("label-always switch-label-side").on(
+            ui.slider(
+                min=0, max=1, step=0.01, value=self.nh3_fan_speeds.two_third_speed
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.nh3_fan_speeds.set(1, int(e.args)),
-                    self._update_chart(fan_chart, self.nh3_fan_speeds),
+                    self.nh3_fan_speeds.set_two_third_speed(float(e.args)),
+                    self._update_chart(fan_chart, self.nh3_fan_speeds.values()),
                 ),
             )
 
             ui.label("set fans to full speed at:")
-            ui.slider(min=0, max=1, step=0.01, value=self.nh3_fan_speeds[2],).classes(
-                "pb-8"
-            ).props("label-always switch-label-side").on(
+            ui.slider(
+                min=0, max=1, step=0.01, value=self.nh3_fan_speeds.full_speed
+            ).classes("pb-8").props("label-always switch-label-side").on(
                 "update:model-value",
                 lambda e: (
-                    self.nh3_fan_speeds.set(2, int(e.args)),
-                    self._update_chart(fan_chart, self.nh3_fan_speeds),
+                    self.nh3_fan_speeds.set_full_speed(float(e.args)),
+                    self._update_chart(fan_chart, self.nh3_fan_speeds.values()),
                 ),
             )
 
@@ -365,13 +537,23 @@ class Frontend(subscriber.Subscriber):
         with ui.expansion("Humidity (%RH)", icon="water_drop"):
             ui.label("target relative humidity:")
             ui.slider(
-                min=0,
-                max=100,
-                step=1,
-                value=self.humidity_actuator_state[0],
-            ).classes("pb-8").props("label-always switch-label-side").on(
-                "update:model-value",
-                lambda e: self.humidity_actuator_state.set(0, int(e.args)),
+                min=0, max=100, step=1, value=self.humidity_settings.target
+            ).classes("pb-8").props("label-always switch-label-side").bind_value(
+                self.humidity_settings, "target", forward=lambda x: int(x)
+            )
+
+    def _build_humidity_cycle_options(self):
+        with ui.expansion("Humidity Cycle", icon="calendar_month"):
+            dates = eval(self.humidity_settings.cycle)
+
+            ui.date(
+                dates,
+                on_change=lambda e: self.humidity_settings.set_cycle(str(e.value))
+                or target_options.handle(e.value),
+            ).props("multiple range")
+
+            target_options = humidity_target_options(
+                dates=dates, config=self.humidity_settings
             )
 
     def _build_pump_burst_options(self):
@@ -379,20 +561,20 @@ class Frontend(subscriber.Subscriber):
 
             ui.number(
                 prefix="opened for",
-                value=self.burst_state[0],
+                value=self.burst_state.opened_for_secs,
                 min=1,
                 step=1,
                 suffix="secs",
-                on_change=lambda e: self.burst_state.set(0, int(e.value)),
+                on_change=lambda e: self.burst_state.set_opened_for_secs(int(e.value)),
             ).classes("pr-32")
 
             ui.number(
                 prefix="every",
-                value=self.burst_state[1],
+                value=self.burst_state.every_secs,
                 min=1,
                 step=1,
                 suffix="secs",
-                on_change=lambda e: self.burst_state.set(1, int(e.value)),
+                on_change=lambda e: self.burst_state.set_every_secs(int(e.value)),
             ).classes("pr-32")
 
     def _build_apply_configs(self):
@@ -857,43 +1039,69 @@ class Frontend(subscriber.Subscriber):
                     (
                         "electrovalve",
                         "humidity_target",
-                        str(self.humidity_actuator_state[0]),
+                        str(self.humidity_settings.target),
+                    ),
+                    (
+                        "electrovalve",
+                        "humidity_cycle",
+                        str(self.humidity_settings.cycle),
+                    ),
+                    (
+                        "electrovalve",
+                        "humidity_cycle_targets",
+                        str(self.humidity_settings.cycle_targets),
                     ),
                     # electrovalve, burst
                     (
                         "electrovalve",
                         "burst_opened_for_secs",
-                        str(self.burst_state[0]),
+                        str(self.burst_state.opened_for_secs),
                     ),
                     (
                         "electrovalve",
                         "burst_every_secs",
-                        str(self.burst_state[1]),
+                        str(self.burst_state.every_secs),
                     ),
                     # fan, temperature
                     (
                         "fan",
                         "temperature_1_third_speed",
-                        str(self.temperature_fan_speeds[0]),
+                        str(self.temperature_fan_speeds.one_third_speed),
                     ),
                     (
                         "fan",
                         "temperature_2_third_speed",
-                        str(self.temperature_fan_speeds[1]),
+                        str(self.temperature_fan_speeds.two_third_speed),
                     ),
                     (
                         "fan",
                         "temperature_full_speed",
-                        str(self.temperature_fan_speeds[2]),
+                        str(self.temperature_fan_speeds.full_speed),
                     ),
                     # fan, co2
-                    ("fan", "co2_1_third_speed", str(self.co2_fan_speeds[0])),
-                    ("fan", "co2_2_third_speed", str(self.co2_fan_speeds[1])),
-                    ("fan", "co2_full_speed", str(self.co2_fan_speeds[2])),
+                    (
+                        "fan",
+                        "co2_1_third_speed",
+                        str(self.co2_fan_speeds.one_third_speed),
+                    ),
+                    (
+                        "fan",
+                        "co2_2_third_speed",
+                        str(self.co2_fan_speeds.two_third_speed),
+                    ),
+                    ("fan", "co2_full_speed", str(self.co2_fan_speeds.full_speed)),
                     # fan, nh3
-                    ("fan", "nh3_1_third_speed", str(self.nh3_fan_speeds[0])),
-                    ("fan", "nh3_2_third_speed", str(self.nh3_fan_speeds[1])),
-                    ("fan", "nh3_full_speed", str(self.nh3_fan_speeds[2])),
+                    (
+                        "fan",
+                        "nh3_1_third_speed",
+                        str(self.nh3_fan_speeds.one_third_speed),
+                    ),
+                    (
+                        "fan",
+                        "nh3_2_third_speed",
+                        str(self.nh3_fan_speeds.two_third_speed),
+                    ),
+                    ("fan", "nh3_full_speed", str(self.nh3_fan_speeds.full_speed)),
                 )
             )
 
@@ -903,20 +1111,26 @@ class Frontend(subscriber.Subscriber):
         with self._update_remote_configs_lock:
             configs_for_nodes = api.Configs(
                 electrovalve=api.ElectrovalveConfigs(
-                    humidity_target=self.humidity_actuator_state[0],
-                    burst_opened_for_secs=self.burst_state[0],
-                    burst_every_secs=self.burst_state[1],
+                    humidity_target=str(self.humidity_settings.target),
+                    humidity_cycle=self.humidity_settings.cycle,
+                    humidity_cycle_targets=self.humidity_settings.cycle_targets,
+                    burst_opened_for_secs=self.burst_state.opened_for_secs,
+                    burst_every_secs=self.burst_state.every_secs,
                 ),
                 fan=api.FanConfigs(
-                    temperature_1_third_speed=self.temperature_fan_speeds[0],
-                    temperature_2_third_speed=self.temperature_fan_speeds[1],
-                    temperature_full_speed=self.temperature_fan_speeds[2],
-                    co2_1_third_speed=self.co2_fan_speeds[0],
-                    co2_2_third_speed=self.co2_fan_speeds[1],
-                    co2_full_speed=self.co2_fan_speeds[2],
-                    nh3_1_third_speed=self.nh3_fan_speeds[0],
-                    nh3_2_third_speed=self.nh3_fan_speeds[1],
-                    nh3_full_speed=self.nh3_fan_speeds[2],
+                    temperature_1_third_speed=str(
+                        self.temperature_fan_speeds.one_third_speed
+                    ),
+                    temperature_2_third_speed=str(
+                        self.temperature_fan_speeds.two_third_speed
+                    ),
+                    temperature_full_speed=str(self.temperature_fan_speeds.full_speed),
+                    co2_1_third_speed=str(self.co2_fan_speeds.one_third_speed),
+                    co2_2_third_speed=str(self.co2_fan_speeds.two_third_speed),
+                    co2_full_speed=str(self.co2_fan_speeds.full_speed),
+                    nh3_1_third_speed=str(self.nh3_fan_speeds.one_third_speed),
+                    nh3_2_third_speed=str(self.nh3_fan_speeds.two_third_speed),
+                    nh3_full_speed=str(self.nh3_fan_speeds.full_speed),
                 ),
             )
             for node_ip in self._discovery.known_nodes():
@@ -933,7 +1147,7 @@ class Frontend(subscriber.Subscriber):
                         f"error updating configs for node {node_ip}: status code {status_code}, reason {reason}",
                     )
 
-    def _update_chart(self, chart: ui.chart, values: Data):
+    def _update_chart(self, chart: ui.chart, values: list[int] | list[float]):
         chart.options["series"][0]["data"] = values
         chart.update()
 

@@ -45,6 +45,8 @@ class Config(pydantic.BaseModel):
 
 class ElectrovalveConfigs(pydantic.BaseModel):
     humidity_target: str
+    humidity_cycle: str
+    humidity_cycle_targets: str
     burst_opened_for_secs: int
     burst_every_secs: int
 
@@ -251,6 +253,16 @@ class API:
                         "electrovalve",
                         "humidity_target",
                         value.electrovalve.humidity_target,
+                    ),
+                    (
+                        "electrovalve",
+                        "humidity_cycle",
+                        value.electrovalve.humidity_cycle,
+                    ),
+                    (
+                        "electrovalve",
+                        "humidity_cycle_targets",
+                        value.electrovalve.humidity_cycle_targets,
                     ),
                     # electrovalve, burst
                     (
