@@ -69,7 +69,7 @@ class Dates(list[tuple[datetime, datetime]]):
     def date_intervals(
         self,
     ) -> None | list[str | dict[str, str]]:
-        """object format for ui.date:[{'from': 'YYYY-MM-DD', 'to': 'YYYY-MM-DD'}, 'YYYY-MM-DD', ...]"""
+        """object format for ui.date: [{'from': 'YYYY-MM-DD', 'to': 'YYYY-MM-DD'}, 'YYYY-MM-DD', ...]"""
         if len(self) == 0:
             return None
 
@@ -96,3 +96,30 @@ class Dates(list[tuple[datetime, datetime]]):
     ) -> str:
         """[{'from': 'YYYY-MM-DD', 'to': 'YYYY-MM-DD'}, 'YYYY-MM-DD', ...]"""
         return str(self.date_intervals())
+
+
+class DateCycleTarget(dict[str, int]):
+    def __init__(self, date_value: str):
+        """
+        assumes date_value is a dict of "{'from': 'YYYY-MM-DD', 'to': 'YYYY-MM-DD'}" -> target humidity
+        """
+        if date_value == "":
+            return
+
+        dates = eval(date_value)
+        if dates is None:
+            return
+
+        if isinstance(dates, dict):
+            if len(dates) == 0:
+                return
+
+            super().__init__(dates)
+
+    def humidity_for(self, from_date: datetime, to_date: datetime) -> None | int:
+        date = {
+            "from": f"{from_date.year:04}-{from_date.month:02}-{from_date.day:02}",
+            "to": f"{to_date.year:04}-{to_date.month:02}-{to_date.day:02}",
+        }
+
+        return self.get(str(date))

@@ -74,11 +74,11 @@ class NH3FanData:
 
 @dataclass
 class HumiditySettings:
-    target: int
+    target: float
     cycle: str
     cycle_targets: str
 
-    def set_target(self, value: int):
+    def set_target(self, value: float):
         self.target = value
 
     def _set_cycle(self, value: str) -> Dates:
@@ -327,7 +327,7 @@ class Frontend(subscriber.Subscriber):
             self._configs["fan"].getfloat("nh3_full_speed"),
         )
         self.humidity_settings = HumiditySettings(
-            self._configs["electrovalve"].getint("humidity_target"),
+            self._configs["electrovalve"].getfloat("humidity_target"),
             self._configs["electrovalve"].get("humidity_cycle"),
             self._configs["electrovalve"].get("humidity_cycle_targets"),
         )
@@ -549,7 +549,7 @@ class Frontend(subscriber.Subscriber):
         with ui.expansion("Humidity (%RH)", icon="water_drop"):
             ui.label("target relative humidity:")
             ui.slider(
-                min=0, max=100, step=1, value=self.humidity_settings.target
+                min=0, max=100, step=0.1, value=self.humidity_settings.target
             ).classes("pb-8").props("label-always switch-label-side").bind_value(
                 self.humidity_settings, "target", forward=lambda x: int(x)
             )
