@@ -11,6 +11,7 @@ from . import configurations
 from . import discovery
 from . import poller
 from . import subscriber
+from .dates import Dates
 from ..adapters import interfaces
 
 
@@ -80,11 +81,23 @@ class HumiditySettings:
     def set_target(self, value: int):
         self.target = value
 
+    def _set_cycle(self, value: str) -> Dates:
+        dates = Dates(value)
+        dates.remove_past_dates()
+        return dates
+
     def set_cycle(self, value: str):
-        self.cycle = value
+        self.cycle = str(self._set_cycle(value))
 
     def set_cycle_targets(self, value: str):
         self.cycle_targets = value
+
+    def __setattr__(self, prop, val):
+        if prop == "cycle":
+            dates = self._set_cycle(val)
+            val = str(dates)
+
+        super().__setattr__(prop, val)
 
 
 @dataclass
@@ -203,41 +216,40 @@ class humidity_target_options(ui.column):
                 self._clear()
                 return
 
-            else:
-                targets_rh = eval(
-                    self.config.cycle_targets
-                )  # dict(date: str -> target: int)
+            targets_rh = eval(
+                self.config.cycle_targets
+            )  # dict(date: str -> target: int)
 
-                new_dates = []
-                for date in dates:
+            new_dates = []
+            for date in dates:
 
-                    date_as_str = str(date)
-                    new_dates.append(date_as_str)
-                    if date_as_str not in self.dates:
-                        targets_rh[date_as_str] = 0
+                date_as_str = str(date)
+                new_dates.append(date_as_str)
+                if date_as_str not in self.dates:
+                    targets_rh[date_as_str] = 0
 
-                        with self:
-                            self.dates[date_as_str] = humidity_target_option(
-                                date=date_as_str,
-                                config=self.config,
-                                prefix=self._prefix(date),
-                                value=targets_rh[date_as_str],
-                                min=0,
-                                max=100,
-                                step=1,
-                                suffix="%rh",
-                            )
+                    with self:
+                        self.dates[date_as_str] = humidity_target_option(
+                            date=date_as_str,
+                            config=self.config,
+                            prefix=self._prefix(date),
+                            value=targets_rh[date_as_str],
+                            min=0,
+                            max=100,
+                            step=1,
+                            suffix="%rh",
+                        )
 
-                to_del = []
-                for date in self.dates:
-                    if date not in new_dates:
-                        self.dates[date].save_target_rh(-1)
-                        self.dates[date].delete()
-                        to_del.append(date)
+            to_del = []
+            for date in self.dates:
+                if date not in new_dates:
+                    self.dates[date].save_target_rh(-1)
+                    self.dates[date].delete()
+                    to_del.append(date)
 
-                for date in to_del:
-                    del self.dates[date]
-                    del targets_rh[date]
+            for date in to_del:
+                del self.dates[date]
+                del targets_rh[date]
 
     def _prefix(self, date: str | dict[str, str]) -> str:
         if isinstance(date, str):
@@ -545,12 +557,14 @@ class Frontend(subscriber.Subscriber):
     def _build_humidity_cycle_options(self):
         with ui.expansion("Humidity Cycle", icon="calendar_month"):
             dates = eval(self.humidity_settings.cycle)
-
-            ui.date(
-                dates,
-                on_change=lambda e: self.humidity_settings.set_cycle(str(e.value))
-                or target_options.handle(e.value),
-            ).props("multiple range")
+            ui.date(dates, on_change=lambda e: target_options.handle(e.value)).props(
+                "multiple range"
+            ).bind_value(
+                self.humidity_settings,
+                "cycle",
+                forward=lambda e: str(e),
+                backward=lambda e: Dates(e).date_intervals(),
+            )
 
             target_options = humidity_target_options(
                 dates=dates, config=self.humidity_settings
