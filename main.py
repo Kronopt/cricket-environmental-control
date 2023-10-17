@@ -92,6 +92,7 @@ api_client = service_api_client.APIClient(configs)
 poller_manager = service_poller.PollerManager(configs, api_client)
 frontend = service_frontend.Frontend(
     configs,
+    actuators_controller,
     api_client,
     discovery,
     poller_manager,
