@@ -124,17 +124,17 @@ Crickets enviroment information:
 - Fans speed (%)
 - Pumps state (ON/OFF)
 
-The circles update in real time and show a green/orange/red color to indicate if the value is ok or not.
+The circles update in real time and show a `green`/`orange`/`red` color to indicate if the value is ok or not.
 
 More settings panel details. If all settings menu are expanded, we get this:
 
 ![screen](docs/all_settings.png)
 
-Crickets environment temperature, CO² concentration and NH³ concentration affect the speed of the fans.
+Crickets environment `temperature`, `CO²` concentration and `NH³` concentration affect the speed of the `fans`.
 All 3 settings are divided into 3 levels, each one defining at which speed the fans should run if the temperature/CO²/NH³ reach that value.
 The highest fan speed prevails
 
-The humidity affects when the pumps open or close.
+The `humidity` affects when the `pumps` open or close.
 A target humidity can be defined which will trigger the pumps if the humidity gets below that threshold.
 While the humidity is below the threshold, the pumps switch between the ON and OFF state at a rate defined by the Burst options.
 The pumps will stay ON for X seconds every Y seconds, as defined by the settings.
