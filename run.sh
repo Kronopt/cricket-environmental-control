@@ -2,15 +2,15 @@
 
 cd /home/pi/cricket-environmental-control
 
-((count = 20))
+((count = 10))
 while [[ $count -ne 0 ]] ; do
-    ping -c 1 github.com
+    curl https://github.com > /dev/null
     ping_status=$?
     if [[ $ping_status -eq 0 ]] ; then
         ((count = 1))
     else
         echo "failed pinging github.com. Is there an internet connection?"
-        sleep 2
+        sleep 5
     fi
     ((count = count - 1))
 done
