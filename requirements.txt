@@ -10,4 +10,4 @@ requests==2.31.0
 
 # the following avoids breaking dependecies because of nicegui
 fastapi==0.107
-python-socketio==5.9.0
+python-socketio==5.14.0
